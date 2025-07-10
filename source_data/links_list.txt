@@ -1,0 +1,28 @@
+**COVID-19 Literature Clustering**
+https://www.kaggle.com/code/maksimeren/covid-19-literature-clustering
+
+**PubMed Central**
+National Library of Medicine
+pmc.ncbi.nlm.nih.gov
+
+**Semantic Scholar**
+Academic Graph API (1.0)
+https://api.semanticscholar.org/api-docs/
+
+**Canada Health data**
+https://www.canada.ca/en/services/health/data.html
+
+**aria2**
+The next generation download utility
+aria2 is a lightweight multi-protocol & multi-source command-line download utility. It supports HTTP/HTTPS, FTP, SFTP, BitTorrent and Metalink. aria2 can be manipulated via built-in JSON-RPC and XML-RPC interfaces.
+https://aria2.github.io/
+
+**redalyc**
+UAEMEX. Red de revistas científicas de Acceso Abierto no comercial propiedad de la academia.
+https://www.redalyc.org/
+
+
+
+
+
+
