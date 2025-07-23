@@ -2,7 +2,22 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Subir Archivos o Carpetas a Firebase</title>
+  <title>Subir Archivos o Carpetas con Progreso</title>
+  <style>
+    .progress-container {
+      margin: 10px 0;
+    }
+    .progress-bar {
+      height: 20px;
+      background-color: #4caf50;
+      width: 0%;
+      color: white;
+      text-align: center;
+    }
+    .file-box {
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
   <h2>Subir archivos o carpetas a Firebase Storage</h2>
@@ -32,7 +47,10 @@
   <br><br>
   <button onclick="upload()">Subir</button>
 
-  <p id="status"></p>
+  <div id="uploadStatus"></div>
+
+  <h3>Resumen de archivos subidos:</h3>
+  <ul id="uploadSummary"></ul>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -40,9 +58,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
   <script>
-    // 🔧 Configuración de Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyDmb0Q2MUkeKgWpS2qbF3ttdHNfc07kID4",
+      	apiKey: "AIzaSyDmb0Q2MUkeKgWpS2qbF3ttdHNfc07kID4",
   	authDomain: "academiap-project.firebaseapp.com",
   	projectId: "academiap-project",
   	storageBucket: "academiap-project.firebasestorage.app",
@@ -54,7 +71,6 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
 
-    // Login anónimo
     firebase.auth().signInAnonymously().catch(console.error);
 
     function upload() {
@@ -62,37 +78,66 @@
       const subcategoria = document.getElementById('subcategoria').value;
       const basePath = `uploads/${categoria}/${subcategoria}/`;
 
-      // Obtener archivos del input de archivos o carpeta
       const fileInput = document.getElementById('fileInput');
       const folderInput = document.getElementById('folderInput');
-
       const files = folderInput.files.length > 0 ? folderInput.files : fileInput.files;
 
+      const statusContainer = document.getElementById('uploadStatus');
+      const summaryList = document.getElementById('uploadSummary');
+      statusContainer.innerHTML = '';
+      summaryList.innerHTML = '';
+
       if (!files.length) {
-        document.getElementById('status').innerText = "Selecciona archivos o una carpeta.";
+        statusContainer.innerText = "Selecciona archivos o una carpeta.";
         return;
       }
 
-      let total = files.length;
-      let uploaded = 0;
-
       Array.from(files).forEach(file => {
-        const path = file.webkitRelativePath
-          ? basePath + file.webkitRelativePath
-          : basePath + file.name;
+        const relativePath = file.webkitRelativePath || file.name;
+        const fullPath = basePath + relativePath;
+        const storageRef = storage.ref(fullPath);
 
-        const storageRef = storage.ref(path);
+        // Crear barra de progreso individual
+        const fileBox = document.createElement('div');
+        fileBox.className = 'file-box';
+        const label = document.createElement('div');
+        label.innerText = `Subiendo: ${relativePath}`;
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        const container = document.createElement('div');
+        container.className = 'progress-container';
+        container.appendChild(progressBar);
+        fileBox.appendChild(label);
+        fileBox.appendChild(container);
+        statusContainer.appendChild(fileBox);
 
-        storageRef.put(file).then(() => {
-          uploaded++;
-          document.getElementById('status').innerText = `Subiendo... ${uploaded}/${total}`;
+        const uploadTask = storageRef.put(file);
 
-          if (uploaded === total) {
-            document.getElementById('status').innerText = `✅ Subida completa: ${total} archivos.`;
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            progressBar.style.width = percent.toFixed(1) + '%';
+            progressBar.innerText = percent.toFixed(0) + '%';
+          },
+          (error) => {
+            console.error("Error al subir", file.name, error);
+            progressBar.style.backgroundColor = 'red';
+            progressBar.innerText = 'Error';
+          },
+          () => {
+            uploadTask.snapshot.ref.getDownloadURL().then(url => {
+              const item = document.createElement('li');
+              const link = document.createElement('a');
+              link.href = url;
+              link.target = '_blank';
+              link.innerText = relativePath;
+              item.appendChild(link);
+              summaryList.appendChild(item);
+              progressBar.style.backgroundColor = '#2196F3';
+              progressBar.innerText = '100%';
+            });
           }
-        }).catch(err => {
-          console.error("Error al subir", file.name, err);
-        });
+        );
       });
     }
   </script>
