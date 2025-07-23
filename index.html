@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Subir archivo a Firebase Storage</title>
+</head>
+<body>
+  <h2>Subir archivo</h2>
+  <input type="file" id="fileInput" />
+  <button onclick="uploadFile()">Subir</button>
+  <p id="status"></p>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <script>
+    // 🔧 Reemplaza esto con tu configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDmb0Q2MUkeKgWpS2qbF3ttdHNfc07kID4",
+  	authDomain: "academiap-project.firebaseapp.com",
+  	projectId: "academiap-project",
+  	storageBucket: "academiap-project.firebasestorage.app",
+  	messagingSenderId: "582873937137",
+  	appId: "1:582873937137:web:dd34fc0de21e95aedee550",
+  	measurementId: "G-M24E4VXELD"
+    };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+
+    // Iniciar sesión anónima
+    firebase.auth().signInAnonymously().catch(console.error);
+
+    // Función para subir archivo
+    function uploadFile() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        document.getElementById('status').innerText = "Selecciona un archivo primero.";
+        return;
+      }
+
+      const storageRef = storage.ref('uploads/' + file.name);
+      const uploadTask = storageRef.put(file);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          document.getElementById('status').innerText = 'Subiendo: ' + Math.round(progress) + '%';
+        },
+        (error) => {
+          console.error('Error al subir:', error);
+          document.getElementById('status').innerText = 'Error al subir el archivo.';
+        },
+        () => {
+          document.getElementById('status').innerText = 'Archivo subido correctamente.';
+          uploadTask.snapshot.ref.getDownloadURL().then(url => {
+            console.log('URL de descarga:', url);
+          });
+        }
+      );
+    }
+  </script>
+</body>
+</html>
